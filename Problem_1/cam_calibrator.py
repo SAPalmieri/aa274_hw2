@@ -78,8 +78,23 @@ class CameraCalibrator:
         '''
 
         ########## Code starts here ##########
-
-        corner_coordinates = None  # UPDATE ME
+        mylistx = []
+        mylisty = []
+        tempx = []
+        tempy = []
+        for iterboard in range(self.n_chessboards): # for each chessboard
+            for j in range(self.n_corners_y): #for each row in x
+                for i in range(self.n_corners_x): # for each corner in y
+                    xval = i*self.d_square
+                    yval = j*self.d_square
+                    tempx.append(xval)
+                    tempy.append(yval)
+            
+            mylistx.insert(iterboard,tempx)
+            mylisty.insert(iterboard,tempy)
+            tempx = []
+            tempy = []
+        corner_coordinates = ( np.array(mylistx), np.array(mylisty) )  # UPDATE ME
 
         ########## Code ends here ##########
 
@@ -94,14 +109,29 @@ class CameraCalibrator:
         Output:
             H: the homography matrix. its size is 3x3
         
-        HINT: What is the size of the matrix L?
+        HINT: What is the size of the matrix L? - (2n x 9)
         HINT: What are the outputs of the np.linalg.svd function? Based on this, where does the eigenvector corresponding to the smallest eigen value live?
         HINT: np.stack and/or np.hstack may come in handy here.
         '''
         ########## Code starts here ##########
+        X = np.reshape(X,(63,1))
+        Y = np.reshape(Y,(63,1))
+        zeroT = np.zeros((63,3))
+        u_meas = np.reshape(u_meas,(63,1))
+        v_meas = np.reshape(v_meas,(63,1))
+        Mtilde = np.stack(( X,Y,np.ones(np.shape(X))), axis = -1 )
+        Mtilde = Mtilde.reshape(63,3)
 
-        H = None # UPDATE ME
-
+        L1 = np.stack( (Mtilde, zeroT, np.multiply(-u_meas, Mtilde)), axis = -1)
+        L1 = np.reshape(L1,(63,9))
+        L2 = np.stack( (zeroT, Mtilde, np.multiply(-v_meas,Mtilde) ), axis = -1)
+        L2 = np.reshape(L2,(63,9))
+       
+        L = np.vstack((L1,L2))
+        u, s, vh = np.linalg.svd(L, full_matrices=False)
+        x = vh[8,:]
+        H = np.vstack((x[0:3], x[3:6], x[6:])) # UPDATE ME
+        H = H.T
         ########## Code ends here ##########
         return H
 
@@ -115,13 +145,93 @@ class CameraCalibrator:
         HINT: MAKE SURE YOU READ SECTION 3.1 THOROUGHLY!!! V. IMPORTANT
         HINT: What is the definition of h_ij?  
         HINT: It might be cleaner to write an inner function (a function inside the getCameraIntrinsics function)
-        HINT: What is the size of V?
+        HINT: What is the size of V? - 2nx6 where n = 23 (images)
         '''
         ########## Code starts here ##########
 
+        def getVij(h):
+            '''
+            inputs: h - estimate of homography
+            outputs: v12,v11,v22  for each board
+            '''
+            h = h.T
+            i = 0
+            j = 1
+            v12 = np.array([ 
+                            [np.multiply(h[i,0],h[j,0]) ], 
+                            [np.multiply(h[i,0],h[j,1]) + np.multiply(h[i,1],h[j,0]) ],
+                            [np.multiply(h[i,1],h[j,1]) ], 
+                            [np.multiply(h[i,2],h[j,0]) + np.multiply(h[i,0],h[j,2]) ],
+                            [np.multiply(h[i,2],h[j,1]) + np.multiply(h[i,1],h[j,2]) ],
+                            [np.multiply(h[i,2],h[j,2])]
+                            ])
+            i = 0
+            j = 0
+            v11 = np.array([ 
+                            [np.multiply(h[i,0],h[j,0]) ], 
+                            [np.multiply(h[i,0],h[j,1]) + np.multiply(h[i,1],h[j,0]) ],
+                            [np.multiply(h[i,1],h[j,1]) ], 
+                            [np.multiply(h[i,2],h[j,0]) + np.multiply(h[i,0],h[j,2]) ],
+                            [np.multiply(h[i,2],h[j,1]) + np.multiply(h[i,1],h[j,2]) ],
+                            [np.multiply(h[i,2],h[j,2])]
+                            ])
+            i = 1
+            j = 1
+            v22 = np.array([ 
+                            [np.multiply(h[i,0],h[j,0]) ], 
+                            [np.multiply(h[i,0],h[j,1]) + np.multiply(h[i,1],h[j,0]) ],
+                            [np.multiply(h[i,1],h[j,1]) ], 
+                            [np.multiply(h[i,2],h[j,0]) + np.multiply(h[i,0],h[j,2]) ],
+                            [np.multiply(h[i,2],h[j,1]) + np.multiply(h[i,1],h[j,2]) ],
+                            [np.multiply(h[i,2],h[j,2])]
+                            ])
+            Vij = np.vstack((v12.T,v11.T-v22.T))
+            Vij = np.reshape(Vij,(2,6))
+            return Vij
 
-        A = None # UPDATE ME
+        Vtot = []
+        
+        n = self.n_chessboards
+        for image in range(self.n_chessboards):
+            V = getVij(H[image])
+            Vtot.append(V)
+            
+        Vtot = np.reshape(Vtot,(2*n,6))    
+        u,s,vh = np.linalg.svd(Vtot)
+        sv = vh[5,:]
+        b = np.array([[sv[0], sv[1], sv[3]],
+                    [sv[1], sv[2], sv[4]],
+                    [sv[3], sv[4], sv[5]] ])
+                    
+        v_0 = (b[0,1]*b[0,2]-b[0,0]*b[1,2]) / (b[0,0]*b[1,1]-b[0,1]**2)
+        lamb = b[2,2]- (b[0,2]**2 + v_0* (b[0,1]*b[0,2]-b[0,0]*b[1,2]))/b[0,0]
+        alp = np.sqrt(lamb/b[0,0])
+        bet = np.sqrt(lamb*b[0,0]/(b[0,0]*b[1,1]-b[0,1]**2))
+        gam = -b[0,1]*(alp**2)*bet/lamb
+        u_0 = gam*v_0/bet - b[0,2]*(alp**2)/lamb
+        A = np.array([[alp, gam, u_0],
+                    [0, bet, v_0],
+                    [0,0,1] ]) # UPDATE ME
+        
+        '''
+            for i in range(len(H[image][0,:])):
+                for j in range(len(H[image][:,0])):
+                    
+                    vval = np.array([ 
+                        [np.multiply(h[image][i,0],h[image][j,0]) ], 
+                        [np.multiply(h[image][i,0],h[image][j,1]) + np.multiply(h[image][i,1],h[image][j,0]) ],
+                        [np.multiply(h[image][i,1],h[image][j,1]) ], 
+                        [np.multiply(h[image][i,2],h[image][j,0]) + np.multiply(h[image][i,0],h[image][j,2]) ],
+                        [np.multiply(h[image][i,2],h[image][j,1]) + np.multiply(h[image][i,1],h[image][j,2]) ],
+                        [np.multiply(h[image][i,2],h[image][j,2])]
+                        ])
+                    v.append(vval)
 
+            Vtot = Vtot.append(image,v)
+            v = []
+            i = 0
+            j = 0
+            '''
         ########## Code ends here ##########
         return A
 
