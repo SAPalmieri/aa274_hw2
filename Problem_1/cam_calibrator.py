@@ -120,12 +120,9 @@ class CameraCalibrator:
         u_meas = np.reshape(u_meas,(63,1))
         v_meas = np.reshape(v_meas,(63,1))
         MtildeT = np.hstack( ( X,Y,np.ones(np.shape(X))) )
-        #MtildeT = MtildeT.reshape(63,3)
 
         L1 = np.hstack( (MtildeT, zeroT, np.multiply(-u_meas, MtildeT)) )
-        #L1 = np.reshape(L1,(63,9))
         L2 = np.hstack( (zeroT, MtildeT, np.multiply(-v_meas,MtildeT) ), )
-        #L2 = np.reshape(L2,(63,9))
        
         L = np.vstack((L1,L2))
         u, s, vh = np.linalg.svd(L)
@@ -213,25 +210,6 @@ class CameraCalibrator:
                     [0, bet, v_0],
                     [0,0,1] ]) # UPDATE ME
         
-        '''
-            for i in range(len(H[image][0,:])):
-                for j in range(len(H[image][:,0])):
-                    
-                    vval = np.array([ 
-                        [np.multiply(h[image][i,0],h[image][j,0]) ], 
-                        [np.multiply(h[image][i,0],h[image][j,1]) + np.multiply(h[image][i,1],h[image][j,0]) ],
-                        [np.multiply(h[image][i,1],h[image][j,1]) ], 
-                        [np.multiply(h[image][i,2],h[image][j,0]) + np.multiply(h[image][i,0],h[image][j,2]) ],
-                        [np.multiply(h[image][i,2],h[image][j,1]) + np.multiply(h[image][i,1],h[image][j,2]) ],
-                        [np.multiply(h[image][i,2],h[image][j,2])]
-                        ])
-                    v.append(vval)
-
-            Vtot = Vtot.append(image,v)
-            v = []
-            i = 0
-            j = 0
-            '''
         ########## Code ends here ##########
         return A
 
@@ -259,8 +237,8 @@ class CameraCalibrator:
         r1comp = np.reshape(r1comp, (3,1))    
         r2comp =  np.reshape(r2comp, (3,1))  
         r3comp =  np.reshape(r3comp, (3,1)) 
-        Rtest = np.vstack((r1comp.T,r2comp.T,r3comp.T))
-        Rtest = Rtest.T
+        Rtest = np.column_stack((r1comp,r2comp,r3comp))
+        
         u,s,vh = np.linalg.svd(Rtest)
         R = np.dot(u,vh)
     
@@ -279,12 +257,12 @@ class CameraCalibrator:
         '''
         ########## Code starts here ##########
         # UPDATE ME
-        Mtilde = np.hstack((X,Y,Z, np.ones((np.shape(X)))))
-        # extrinsic = np.vstack((R,t))
-        # A = getCameraIntrinsics(self,H)
-        smtilde = A.dot(extrinsic.dot(Mtilde))
-        x = smtilde[0]
-        y = smtilde[1]
+        Mtilde = np.column_stack((X,Y,Z, np.ones((np.shape(X)))))
+        extrinsic = np.column_stack((R,t))
+        
+        smtilde = np.dot(extrinsic, Mtilde)
+        x = np.multiply(smtilde[0], self.h_pixels)
+        y = np.multiply(smtilde[1], self.w_pixels)
 
         ########## Code ends here ##########
         return x, y
@@ -301,8 +279,12 @@ class CameraCalibrator:
         '''
         ########## Code starts here ##########
         # UPDATE ME
-        u = None
-        v = None
+        Mtilde = np.column_stack((X,Y,Z, np.ones((np.shape(X)))))
+        extrinsic = np.column_stack((R,t))
+        smtilde = np.dot(A,np.dot(extrinsic,Mtilde.T))
+        scale = np.linalg.norm(smtilde[2])
+        u = np.divide(smtilde[0], scale)
+        v = np.divide(smtilde[1], scale)
         ########## Code ends here ##########
         return u, v
 
@@ -317,8 +299,10 @@ class CameraCalibrator:
         '''
         ########## Code starts here ##########        
                 # UPDATE ME
-        x_br = None
-        y_br = None
+        x_br = X + np.multiply(X, np.multiply(k[0], X**2 + Y**2)) + np.multiply(X, np.multiply(k[1], (X**2 + Y**2)**2 ))
+        
+        y_br = Y + np.multiply(Y, np.multiply(k[0], X**2 + Y**2)) + np.multiply(Y, np.multiply(k[1], (X**2 + Y**2)**2 ))
+
         ########## Code ends here ##########        
         return x_br, y_br
 
@@ -334,8 +318,11 @@ class CameraCalibrator:
         '''
         ########## Code starts here ##########                
         # UPDATE ME
-        u_br = None
-        v_br = None
+        u0 = A[0,2]
+        v0 = A[1,2]
+        u,v = transformWorld2PixImageUndist(self, X, Y, Z, R, t, A)
+        u_br = u + np.multiply( (u-u0), np.multiply(k[0], X**2 + Y**2)) + np.multiply(u-u0, np.multiply(k[1],(X**2 + Y**2)**2  ))
+        v_br = v + np.multiply( (v-v0), np.multiply(k[0], X**2 + Y**2)) + np.multiply(v-v0, np.multiply(k[1],(X**2 + Y**2)**2  ))
         ########## Code ends here ##########
         return u_br, v_br
 
@@ -349,6 +336,7 @@ class CameraCalibrator:
             n_plots = 3
         else:
             n_plots = 2
+
 
         fig = plt.figure('Image Correction', figsize=(6*n_plots, 5))
         gs = gridspec.GridSpec(1, n_plots)
