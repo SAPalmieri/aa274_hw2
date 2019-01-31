@@ -119,19 +119,19 @@ class CameraCalibrator:
         zeroT = np.zeros((63,3))
         u_meas = np.reshape(u_meas,(63,1))
         v_meas = np.reshape(v_meas,(63,1))
-        Mtilde = np.stack(( X,Y,np.ones(np.shape(X))), axis = -1 )
-        Mtilde = Mtilde.reshape(63,3)
+        MtildeT = np.hstack( ( X,Y,np.ones(np.shape(X))) )
+        #MtildeT = MtildeT.reshape(63,3)
 
-        L1 = np.stack( (Mtilde, zeroT, np.multiply(-u_meas, Mtilde)), axis = -1)
-        L1 = np.reshape(L1,(63,9))
-        L2 = np.stack( (zeroT, Mtilde, np.multiply(-v_meas,Mtilde) ), axis = -1)
-        L2 = np.reshape(L2,(63,9))
+        L1 = np.hstack( (MtildeT, zeroT, np.multiply(-u_meas, MtildeT)) )
+        #L1 = np.reshape(L1,(63,9))
+        L2 = np.hstack( (zeroT, MtildeT, np.multiply(-v_meas,MtildeT) ), )
+        #L2 = np.reshape(L2,(63,9))
        
         L = np.vstack((L1,L2))
-        u, s, vh = np.linalg.svd(L, full_matrices=False)
+        u, s, vh = np.linalg.svd(L)
         x = vh[8,:]
         H = np.vstack((x[0:3], x[3:6], x[6:])) # UPDATE ME
-        H = H.T
+        #H = H.T
         ########## Code ends here ##########
         return H
 
@@ -246,8 +246,20 @@ class CameraCalibrator:
         '''
         ########## Code starts here ##########
         # UPDATE ME
-        R = None
-        t = None
+        Ainv = np.linalg.inv(A)
+        h1 = H[:,0]
+        h2 = H[:,1]
+        h3 = H[:,2]
+        lamb = 1 /  np.linalg.norm(np.dot(Ainv,h1))
+        r1comp = np.multiply(lamb,np.dot(Ainv,h1))
+        r2comp = np.multiply(lamb,np.dot(Ainv,h2))
+        r3comp = np.cross(r1comp,r2comp)
+        t =  np.multiply(lamb,np.dot(Ainv,h3))
+        Rtest = np.hstack((r1comp.T,r2comp.T,r3comp.T))
+
+        #estimate R using SVD
+        R = NONE
+        
 
 
         ########## Code ends here ##########
