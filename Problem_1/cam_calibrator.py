@@ -254,14 +254,16 @@ class CameraCalibrator:
         r1comp = np.multiply(lamb,np.dot(Ainv,h1))
         r2comp = np.multiply(lamb,np.dot(Ainv,h2))
         r3comp = np.cross(r1comp,r2comp)
-        t =  np.multiply(lamb,np.dot(Ainv,h3))
-        Rtest = np.hstack((r1comp.T,r2comp.T,r3comp.T))
+        t =  np.multiply(lamb,np.dot(Ainv,h3)) 
 
-        #estimate R using SVD
-        R = NONE
-        
-
-
+        r1comp = np.reshape(r1comp, (3,1))    
+        r2comp =  np.reshape(r2comp, (3,1))  
+        r3comp =  np.reshape(r3comp, (3,1)) 
+        Rtest = np.vstack((r1comp.T,r2comp.T,r3comp.T))
+        Rtest = Rtest.T
+        u,s,vh = np.linalg.svd(Rtest)
+        R = np.dot(u,vh)
+    
         ########## Code ends here ##########
         return R, t
 
