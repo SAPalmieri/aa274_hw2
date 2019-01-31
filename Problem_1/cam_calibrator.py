@@ -279,8 +279,12 @@ class CameraCalibrator:
         '''
         ########## Code starts here ##########
         # UPDATE ME
-        x = None
-        y = None
+        Mtilde = np.hstack((X,Y,Z, np.ones((np.shape(X)))))
+        # extrinsic = np.vstack((R,t))
+        # A = getCameraIntrinsics(self,H)
+        smtilde = A.dot(extrinsic.dot(Mtilde))
+        x = smtilde[0]
+        y = smtilde[1]
 
         ########## Code ends here ##########
         return x, y
