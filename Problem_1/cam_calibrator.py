@@ -233,6 +233,7 @@ class CameraCalibrator:
         r2comp = np.multiply(lamb,np.dot(Ainv,h2))
         r3comp = np.cross(r1comp,r2comp)
         t =  np.multiply(lamb,np.dot(Ainv,h3)) 
+        t = np.reshape(t,(3,1))
 
         r1comp = np.reshape(r1comp, (3,1))    
         r2comp =  np.reshape(r2comp, (3,1))  
@@ -257,12 +258,12 @@ class CameraCalibrator:
         '''
         ########## Code starts here ##########
         # UPDATE ME
-        Mtilde = np.column_stack((X,Y,Z, np.ones((np.shape(X)))))
+        Mtilde = np.row_stack((X,Y,Z, np.ones((np.shape(X)))))
         extrinsic = np.column_stack((R,t))
         
         smtilde = np.dot(extrinsic, Mtilde)
-        x = np.multiply(smtilde[0], self.h_pixels)
-        y = np.multiply(smtilde[1], self.w_pixels)
+        x = smtilde[0]
+        y = smtilde[1]
 
         ########## Code ends here ##########
         return x, y
@@ -279,12 +280,13 @@ class CameraCalibrator:
         '''
         ########## Code starts here ##########
         # UPDATE ME
-        Mtilde = np.column_stack((X,Y,Z, np.ones((np.shape(X)))))
+        Mtilde = np.row_stack((X,Y,Z, np.ones((np.shape(X)))))
         extrinsic = np.column_stack((R,t))
-        smtilde = np.dot(A,np.dot(extrinsic,Mtilde.T))
-        scale = np.linalg.norm(smtilde[2])
-        u = np.divide(smtilde[0], scale)
-        v = np.divide(smtilde[1], scale)
+        smtilde = np.dot(A,np.dot(extrinsic,Mtilde))
+
+        # scale = np.linalg.norm(smtilde[2])
+        u = np.divide(smtilde[0], smtilde[2])
+        v = np.divide(smtilde[1], smtilde[2])
         ########## Code ends here ##########
         return u, v
 
@@ -299,8 +301,8 @@ class CameraCalibrator:
         '''
         ########## Code starts here ##########        
                 # UPDATE ME
+        X,Y = CameraCalibrator.transformWorld2NormImageUndist(self, X, Y, Z, R, t)
         x_br = X + np.multiply(X, np.multiply(k[0], X**2 + Y**2)) + np.multiply(X, np.multiply(k[1], (X**2 + Y**2)**2 ))
-        
         y_br = Y + np.multiply(Y, np.multiply(k[0], X**2 + Y**2)) + np.multiply(Y, np.multiply(k[1], (X**2 + Y**2)**2 ))
 
         ########## Code ends here ##########        
@@ -320,7 +322,9 @@ class CameraCalibrator:
         # UPDATE ME
         u0 = A[0,2]
         v0 = A[1,2]
-        u,v = transformWorld2PixImageUndist(self, X, Y, Z, R, t, A)
+        X,Y = CameraCalibrator.transformWorld2NormImageUndist(self, X, Y, Z, R, t)
+        u,v = CameraCalibrator.transformWorld2PixImageUndist(self, X, Y, Z, R, t, A)
+        
         u_br = u + np.multiply( (u-u0), np.multiply(k[0], X**2 + Y**2)) + np.multiply(u-u0, np.multiply(k[1],(X**2 + Y**2)**2  ))
         v_br = v + np.multiply( (v-v0), np.multiply(k[0], X**2 + Y**2)) + np.multiply(v-v0, np.multiply(k[1],(X**2 + Y**2)**2  ))
         ########## Code ends here ##########
@@ -411,7 +415,7 @@ class CameraCalibrator:
                                   [xyz_cam[2][j] for j in ind_cam[i]])])
 
         fig = plt.figure('Estimated Chessboard Locations', figsize=(12, 5))
-        axim = fig.add_subplot(121)
+        axim = fig.add_10ubplot(121)
         ax3d = fig.add_subplot(122, projection='3d')
 
         boards = []
