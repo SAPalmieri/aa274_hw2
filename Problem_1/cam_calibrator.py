@@ -301,9 +301,9 @@ class CameraCalibrator:
         '''
         ########## Code starts here ##########        
                 # UPDATE ME
-        X,Y = CameraCalibrator.transformWorld2NormImageUndist(self, X, Y, Z, R, t)
-        x_br = X + np.multiply(X, np.multiply(k[0], X**2 + Y**2)) + np.multiply(X, np.multiply(k[1], (X**2 + Y**2)**2 ))
-        y_br = Y + np.multiply(Y, np.multiply(k[0], X**2 + Y**2)) + np.multiply(Y, np.multiply(k[1], (X**2 + Y**2)**2 ))
+        x,y = CameraCalibrator.transformWorld2NormImageUndist(self, X, Y, Z, R, t)
+        x_br = x + x*( k[0]*( x**2 + y**2)  +  k[1]*(x**2 + y**2)**2 )
+        y_br = y + y*( k[0]*( x**2 + y**2)  +  k[1]*(x**2 + y**2)**2 )
 
         ########## Code ends here ##########        
         return x_br, y_br
@@ -322,11 +322,11 @@ class CameraCalibrator:
         # UPDATE ME
         u0 = A[0,2]
         v0 = A[1,2]
-        X,Y = CameraCalibrator.transformWorld2NormImageUndist(self, X, Y, Z, R, t)
+        x,y = CameraCalibrator.transformWorld2NormImageUndist(self, X, Y, Z, R, t)
         u,v = CameraCalibrator.transformWorld2PixImageUndist(self, X, Y, Z, R, t, A)
-        
-        u_br = u + np.multiply( (u-u0), np.multiply(k[0], X**2 + Y**2)) + np.multiply(u-u0, np.multiply(k[1],(X**2 + Y**2)**2  ))
-        v_br = v + np.multiply( (v-v0), np.multiply(k[0], X**2 + Y**2)) + np.multiply(v-v0, np.multiply(k[1],(X**2 + Y**2)**2  ))
+
+        u_br = u + (u-u0)* (k[0]*( x**2 + y**2) + k[1]*(x**2 + y**2)**2 )
+        v_br = v + (v-v0)* (k[0]*( x**2 + y**2) + k[1]*(x**2 + y**2)**2 )
         ########## Code ends here ##########
         return u_br, v_br
 
@@ -415,7 +415,7 @@ class CameraCalibrator:
                                   [xyz_cam[2][j] for j in ind_cam[i]])])
 
         fig = plt.figure('Estimated Chessboard Locations', figsize=(12, 5))
-        axim = fig.add_10ubplot(121)
+        axim = fig.add_subplot(121)
         ax3d = fig.add_subplot(122, projection='3d')
 
         boards = []
