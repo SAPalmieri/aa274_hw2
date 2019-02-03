@@ -118,30 +118,33 @@ def SplitLinesRecursive(theta, rho, startIdx, endIdx, params):
     # It should call 'FitLine()' to fit individual line segments
     # In should call 'FindSplit()' to find an index to split at
     #################
-    # theta = np.reshape(theta,(180,1))
-    # rho = np.reshape(rho, (180,1))
-    L = np.column_stack((theta,rho))
-    n = len(theta)
-    for i in range(n): #go through all points
-        alpha, r = FitLine(theta,rho)
-        #calculate D, if less than d
-        splitidx = FindSplit(theta,rho,alpha,r,params)
-        # D = (rho * np.cos(theta-alpha)-r)
-        # ind = np.argmax(D)
-        val = L[splitidx]
-        #if it is within the threshold for distance, continue
-        if np.abs(val) < params.LINE_POINT_DIST_THRESHOLD:
-            i = i +1
-        else: # if it is too big, then we need to split
-            idx = FindSplit(theta,rho,alpha,r,params)
-            #set the split sets
+    # L = []
+    #initialize the set
+    s1 = np.column_stack( (theta[startIdx:endIdx], rho[startIdx:endIdx]))
+     
+    #put that set in a list
+    L = [s1]
+
+    #fit a line to the data points in our current set
+    alpha, r = FitLine(s1[:,0],s1[:,1])
+    
+    #calculate the index of the line to split at
+    splitidx = FindSplit(theta,rho,alpha,r,params)
+
+    if splitidx == -1: #if it wasn't possible to split, we are done
+        idx = splitidx
+    else: # if it is too big, then we need to split
+        s1 = L[startIdx:splitidx]
+        s2 = L[idx:endIdx]
+        L = np.column_stack((s1,s2))
+        SplitLinesRecursive(theta,rho,startIdx,idx,params)
+        
     
     #merge colinear sets in L when all done
 
     alpha = 1
     r = 1
     idx = 1      
-    raise NotImplementedError
 
     return alpha, r, idx
 
@@ -168,22 +171,18 @@ def FindSplit(theta, rho, alpha, r, params):
     # not divide into segments smaller than 'MIN_POINTS_PER_SEGMENT'
     # return -1 if no split is possiple
     #################
-    startIdx = 0
-    for i in range(len(theta)):
-        #calculate the distance of each point to the line
-        dist = (rho[i] * np.cos(theta[i]-alpha) - r)**2
-        #calculate the segment 
-        seg = float(len(theta[startIdx:i+1]))
-        #if the distance exceeds this threshold and it doesnt split too hard
-        if dist > params.LINE_POINT_DIST_THRESHOLD and np.abs(len(seg)) > params.MIN_POINTS_PER_SEGMENT: #if the distance exceeds this threshold
-            splitIdx = i
-        else:
-            return -1
-
-    
+    distances = (rho*np.cos(theta-alpha)-r)**2
+    idx = np.argmax(distances)
+    val = distances[idx]
+    #segment length
+    seg = float(idx+1)
+    #if the distance exceeds this threshold and it doesnt split too hard
+    if val > params["LINE_POINT_DIST_THRESHOLD"] and seg > params["MIN_POINTS_PER_SEGMENT"]: #if the distance exceeds this threshold
+        splitIdx = idx
+    else: #not possible
+        return -1
 
     return splitIdx
-    raise NotImplementedError
 
 def FitLine(theta, rho):
     '''
@@ -203,14 +202,20 @@ def FitLine(theta, rho):
     # Implement a function to fit a line to polar data points
     # based on the solution to the least squares problem (see Hw)
     #################
+
+    # plt.plot(theta,rho)
+    # plt.show()
     n = float(len(theta))
     x1 = np.sum(rho * np.sin(2*theta))- 2/n * np.sum(rho*np.sin(theta)) *np.sum(rho*np.cos(theta))
+
     x2 = np.sum(rho * np.cos(2*theta))- ( 1/n * (np.sum(rho*np.cos(theta)*np.sum(rho*np.cos(theta))) 
                 - np.sum(rho*np.sin(theta))*np.sum(rho*np.sin(theta)) ))
-    alpha = 1/2 * np.arctan2(x1,x2) + np.pi/2
-    r = 1/n * np.sum(rho*np.cos(theta-alpha))
+
+    alpha = 1.0/2.0 * np.arctan2(x1,x2) + np.pi/2
+    r = 1.0/n * np.sum(rho*np.cos(theta-alpha))
+    
     return alpha, r
-    raise NotImplementedError
+
 
 def MergeColinearNeigbors(theta, rho, alpha, r, pointIdx, params):
     '''
