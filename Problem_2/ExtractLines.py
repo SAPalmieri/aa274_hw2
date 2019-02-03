@@ -118,12 +118,11 @@ def SplitLinesRecursive(theta, rho, startIdx, endIdx, params):
     # It should call 'FitLine()' to fit individual line segments
     # In should call 'FindSplit()' to find an index to split at
     #################
-    # L = []
     #initialize the set
     s1 = np.column_stack( (theta[startIdx:endIdx], rho[startIdx:endIdx]))
      
     #put that set in a list
-    L = [s1]
+    L = s1
 
     #fit a line to the data points in our current set
     alpha, r = FitLine(s1[:,0],s1[:,1])
@@ -134,18 +133,11 @@ def SplitLinesRecursive(theta, rho, startIdx, endIdx, params):
     if splitidx == -1: #if it wasn't possible to split, we are done
         idx = splitidx
     else: # if it is too big, then we need to split
-        s1 = L[startIdx:splitidx]
-        s2 = L[idx:endIdx]
-        L = np.column_stack((s1,s2))
-        SplitLinesRecursive(theta,rho,startIdx,idx,params)
+        alpha, r, s1 = SplitLinesRecursive(theta, rho, startIdx, splitidx, params)
+        alpha, r, s2 = SplitLinesRecursive(theta, rho, splitidx, endIdx, params)
+        idx = np.column_stack((s1,s2))
         
-    
-    #merge colinear sets in L when all done
-
-    alpha = 1
-    r = 1
-    idx = 1      
-
+        
     return alpha, r, idx
 
 
@@ -176,10 +168,11 @@ def FindSplit(theta, rho, alpha, r, params):
     val = distances[idx]
     #segment length
     seg = float(idx+1)
-    #if the distance exceeds this threshold and it doesnt split too hard
-    if val > params["LINE_POINT_DIST_THRESHOLD"] and seg > params["MIN_POINTS_PER_SEGMENT"]: #if the distance exceeds this threshold
+    #if the distance exceeds this threshold and there are enough points to make a segment
+    #we have an index to split and and should return
+    if val > params["LINE_POINT_DIST_THRESHOLD"] and seg > params["MIN_POINTS_PER_SEGMENT"]: 
         splitIdx = idx
-    else: #not possible
+    else: #not possible to split
         return -1
 
     return splitIdx
