@@ -126,17 +126,18 @@ def SplitLinesRecursive(theta, rho, startIdx, endIdx, params):
 
     #fit a line to the data points in our current set
     alpha, r = FitLine(theta[startIdx:endIdx+1],rho[startIdx:endIdx+1])
-    
+    print('start index ', startIdx)
+    print('end index ', endIdx)
     #calculate the index of the line to split at
     splitidx = FindSplit(theta[startIdx:endIdx+1],rho[startIdx:endIdx+1],alpha,r,params)
 
-    if splitidx == -1: #if it wasn't possible to split, we are done
-        idx = splitidx
+    if splitidx == -1: #if it wasn't possible to split, we return that index
+        idx = np.array([startIdx, splitidx])
     else: # if it is too big, then we need to split
-        alpha, r, s1 = SplitLinesRecursive(theta, rho, startIdx, splitidx, params)
-        alpha, r, s2 = SplitLinesRecursive(theta, rho, splitidx, endIdx, params)
+        alpha, r, s1 = SplitLinesRecursive(theta, rho, startIdx, startIdx + splitidx + 1, params)
+        alpha, r, s2 = SplitLinesRecursive(theta, rho, startIdx + splitidx+ 1, endIdx, params)
         # idx = np.column_stack((s1,s2))
-        
+       
         
     return alpha, r, idx
 
@@ -168,6 +169,7 @@ def FindSplit(theta, rho, alpha, r, params):
     val = distances[idx]
     #segment length
     seg = float(idx+1)
+
     #if the distance exceeds this threshold and there are enough points to make a segment
     #we have an index to split and and should return
     if val > params["LINE_POINT_DIST_THRESHOLD"] and seg > params["MIN_POINTS_PER_SEGMENT"]: 
@@ -200,14 +202,13 @@ def FitLine(theta, rho):
     # plt.show()
 
     n = float(len(theta))
+    print('n ',n)
     x1 = np.sum(rho * np.sin(2*theta))- 2/n * np.sum(rho*np.sin(theta)) *np.sum(rho*np.cos(theta))
-
     x2 = np.sum(rho * np.cos(2*theta))- ( 1/n * (np.sum(rho*np.cos(theta)*np.sum(rho*np.cos(theta))) 
                 - np.sum(rho*np.sin(theta))*np.sum(rho*np.sin(theta)) ))
-
     alpha = 1.0/2.0 * np.arctan2(x1,x2) + np.pi/2
     r = 1.0/n * np.sum(rho*np.cos(theta-alpha))
-    
+
     return alpha, r
 
 
@@ -232,9 +233,12 @@ def MergeColinearNeigbors(theta, rho, alpha, r, pointIdx, params):
     #       points from two adjacent segments. If this line cannot be
     #       split, then accept the merge. If it can be split, do not merge.
     #################
-    
+    # for i in range(len(pointIdx)):
+        # alphanew, rnew = FitLine(theta[pointIdx[i]], rho[pointIdx[i]]])
+    alphaOut = 1
+    rOut = 1
+    pointIdxOut = 1
     raise NotImplementedError
-
     return alphaOut, rOut, pointIdxOut
 
 
