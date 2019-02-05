@@ -125,17 +125,17 @@ def SplitLinesRecursive(theta, rho, startIdx, endIdx, params):
     L = s1
 
     #fit a line to the data points in our current set
-    alpha, r = FitLine(s1[:,0],s1[:,1])
+    alpha, r = FitLine(theta[startIdx:endIdx+1],rho[startIdx:endIdx+1])
     
     #calculate the index of the line to split at
-    splitidx = FindSplit(theta,rho,alpha,r,params)
+    splitidx = FindSplit(theta[startIdx:endIdx+1],rho[startIdx:endIdx+1],alpha,r,params)
 
     if splitidx == -1: #if it wasn't possible to split, we are done
         idx = splitidx
     else: # if it is too big, then we need to split
         alpha, r, s1 = SplitLinesRecursive(theta, rho, startIdx, splitidx, params)
         alpha, r, s2 = SplitLinesRecursive(theta, rho, splitidx, endIdx, params)
-        idx = np.column_stack((s1,s2))
+        # idx = np.column_stack((s1,s2))
         
         
     return alpha, r, idx
@@ -198,6 +198,7 @@ def FitLine(theta, rho):
 
     # plt.plot(theta,rho)
     # plt.show()
+
     n = float(len(theta))
     x1 = np.sum(rho * np.sin(2*theta))- 2/n * np.sum(rho*np.sin(theta)) *np.sum(rho*np.cos(theta))
 
