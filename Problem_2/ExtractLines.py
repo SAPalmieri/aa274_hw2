@@ -313,7 +313,7 @@ def ImportRangeData(filename):
 def main():
     # parameters for line extraction (mess with these!)
     MIN_SEG_LENGTH = 0.025  # minimum length of each line segment (m)
-    LINE_POINT_DIST_THRESHOLD = 0.05 # max distance of pt from line to split
+    LINE_POINT_DIST_THRESHOLD = 0.5 # max distance of pt from line to split
     MIN_POINTS_PER_SEGMENT = 2  # minimum number of points per line segment
     MAX_P2P_DIST = .2  # max distance between two adjent pts within a segment
 
@@ -322,9 +322,9 @@ def main():
     #       y_r is the robot's y position
     #       N_pts is the number of beams (e.g. 180 -> beams are 2deg apart)
 
-    # filename = 'rangeData_5_5_180.csv'
+    filename = 'rangeData_5_5_180.csv'
     # filename = 'rangeData_4_9_360.csv'
-    filename = 'rangeData_7_2_90.csv'
+    # filename = 'rangeData_7_2_90.csv'
 
     # Import Range Data
     RangeData = ImportRangeData(filename)
@@ -342,7 +342,7 @@ def main():
     ax = PlotLines(segend, ax)
 
     plt.show(ax)
-    plt.savefig('sap_rangeData_7_2_90')
+    
 ############################################################
 
 if __name__ == '__main__':
