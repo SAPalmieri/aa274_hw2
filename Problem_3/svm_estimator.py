@@ -72,8 +72,8 @@ def svm(data, load=False, feature_extractor=identityFeatureExtractor):
                 Beware of variable types, (is it an int, or a float?).
                 i.e., y_est = ...., loss = .....
                 '''
-                y_est = None
-                loss = None
+                y_est = tf.Variable(tf.sign(x*W-b), tf.float32)
+                loss = tf.Variable(tf.maximum(0.0, 1.0 - (x*W-b)), tf.int32)
                 ######### Your code ends here #########
 
                 accuracy = tf.reduce_mean(tf.to_float(y*y_est > 0))
@@ -203,7 +203,7 @@ if __name__ == '__main__':
     parser.add_argument('--feature',   type=str, default="identity", help="identity or custom")
 
     args = parser.parse_args()
-
+    args.type = "toy"
     if args.type == "toy":
         x_train, y_train = generate_data(N=5000)
         x_eval, y_eval = generate_data(N=1000)
