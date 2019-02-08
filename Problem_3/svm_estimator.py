@@ -47,8 +47,8 @@ def svm(data, load=False, feature_extractor=identityFeatureExtractor):
         eval_batch_size = 32,
         ######### Your code starts here #########
         # Select your learning rate and lambda value here 
-        lr = None,
-        lam = None,
+        lr = 1,
+        lam = 1,
         ######### Your code ends here #########
         )
 
@@ -72,8 +72,13 @@ def svm(data, load=False, feature_extractor=identityFeatureExtractor):
                 Beware of variable types, (is it an int, or a float?).
                 i.e., y_est = ...., loss = .....
                 '''
-                y_est = tf.Variable(tf.sign(x*W-b), tf.float32)
-                loss = tf.Variable(tf.maximum(0.0, 1.0 - (x*W-b)), tf.int32)
+                
+                # y_est = tf.cast(tf.multiply(y,tf.matmul(x,W)-b), tf.float32)
+                y_est = tf.cast(tf.matmul(x,W)-b, tf.float32)
+                y_est = tf.matmul(x,W)-b
+                loss = tf.math.maximum(0, 1 - tf.cast(tf.multiply(y,tf.matmul(x,W)-b), tf.int32))
+                loss = tf.cast(tf.Variable(loss, tf.float32), tf.int32)
+
                 ######### Your code ends here #########
 
                 accuracy = tf.reduce_mean(tf.to_float(y*y_est > 0))
@@ -98,8 +103,11 @@ def svm(data, load=False, feature_extractor=identityFeatureExtractor):
                 Compute the y_est (estimate of y), the label.
                 i.e., y_est = ...., label = .....
                 '''
-                y_est = None
-                label = None
+                y_est = tf.cast(tf.matmul(x,W)-b, tf.float32)
+                n = tf.size(y, tf.int32)
+                label = tf.cast(1.0/n * tf.reduce_sum( tf.maximum(0, 1 - tf.multiply(y, tf.matmul(x,W)-b))) + params.lam*tf.multiply(tf.linalg.norm(W),tf.linalg.norm(W)), tf.float32)
+                label = tf.cast(1.0/n * tf.reduce_sum( tf.maximum(0, 1 - tf.matmul(x,W)-b) ) + params.lam*tf.multiply(tf.linalg.norm(W),tf.linalg.norm(W)), tf.float32)
+
                 ######### Your code ends here #########
 
                 predictions["y_est"] = y_est
