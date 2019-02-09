@@ -75,7 +75,7 @@ def svm(data, load=False, feature_extractor=identityFeatureExtractor):
                 
                 # y_est = tf.cast(tf.multiply(y,tf.matmul(x,W)-b), tf.float32)
                 # y_est = tf.cast(tf.matmul(x,W)-b, tf.float32)
-                y_est = tf.matmul(x,W)-b
+                y_est = tf.multiply(y,tf.matmul(x,W)-b)
                 n = tf.size(x)
                 loss = tf.reduce_sum( tf.maximum(0.0, 1.0 - tf.multiply(y,tf.matmul(x,W)-b) ) ) + params.lam* tf.nn.l2_loss(W)
                 ######### Your code ends here #########
@@ -195,11 +195,10 @@ def get_hog_data():
         x_train = hog_descriptor( np.concatenate([pedestrian_data['train_neg'], pedestrian_data['train_pos']], axis = 0)).eval()    # should be of size [#datapoints, 1152] 
         # we also know that the first 500 examples were -1 and second 500 were +1
         x_eval = hog_descriptor( np.concatenate([pedestrian_data['eval_neg'], pedestrian_data['eval_pos']], axis = 0)).eval()    # should be of size [#datapoints, 1152] 
-        x_pred = hog_descriptor( np.concatenate([pedestrian_data['true_neg'], pedestrian_data['true_pos']], axis = 0)).eval()
-        y_train = hog_descriptor( np.concatenate([pedestrian_data['train_neg'], pedestrian_data['train_pos']], axis = 0)).eval()    # should be of size [#datapoints, 1152] 
-        # y_eval = hog_descriptor( np.concatenate([pedestrian_data['eval_neg'], pedestrian_data['eval_pos']], axis = 0)).eval()
-        # y_true =  hog_descriptor( np.concatenate([pedestrian_data['eval_neg'], pedestrian_data['eval_pos']], axis = 0)).eval()
-        # y_true = np.concatenate(np.ones(np.shape(pedestrian_data['true_neg'])), np.zeros(np.shape(pedestrian_data['true_pos'])), axis = 0)
+        x_pred = hog_descriptor( np.concatenate([pedestrian_data['test_neg'], pedestrian_data['test_pos']], axis = 0)).eval()
+        y_train = np.concatenate((-np.ones(pedestrian_data['train_neg']).shape(0), np.ones(pedestrian_data['train_pos']).shape(0)), axis = 0)
+        y_eval = np.concatenate((-np.ones(pedestrian_data['eval_neg']).shape(0), np.ones(pedestrian_data['eval_pos']).shape(0)), axis = 0)
+        y_true = np.concatenate((-np.ones(pedestrian_data['test_neg']).shape(0), np.ones(pedestrian_data['test_pos']).shape(0)), axis = 0)
         ######### Your code ends here #########
     return (x_train, y_train), (x_eval, y_eval), (x_pred, y_true)
 
