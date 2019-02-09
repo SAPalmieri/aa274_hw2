@@ -47,7 +47,7 @@ def svm(data, load=False, feature_extractor=identityFeatureExtractor):
         eval_batch_size = 32,
         ######### Your code starts here #########
         # Select your learning rate and lambda value here 
-        lr = 0.03,
+        lr = .03, #should be .03,
         lam = 1,
         ######### Your code ends here #########
         )
@@ -72,12 +72,9 @@ def svm(data, load=False, feature_extractor=identityFeatureExtractor):
                 Beware of variable types, (is it an int, or a float?).
                 i.e., y_est = ...., loss = .....
                 '''
-                
-                # y_est = tf.cast(tf.multiply(y,tf.matmul(x,W)-b), tf.float32)
-                # y_est = tf.cast(tf.matmul(x,W)-b, tf.float32)
-                y_est = tf.multiply(y,tf.matmul(x,W)-b)
-                n = tf.size(x)
-                loss = tf.reduce_sum( tf.maximum(0.0, 1.0 - tf.multiply(y,tf.matmul(x,W)-b) ) ) + params.lam* tf.nn.l2_loss(W)
+                y_est = tf.matmul(x,W)-b
+                loss = tf.reduce_mean( tf.maximum(0.0, 1.0 - y*(tf.matmul(x,W)-b)) ) + params.lam* tf.nn.l2_loss(W) 
+                # loss = tf.reduce_sum( tf.maximum(0.0, 1.0 - tf.matmul(x,W)-b )  + params.lam* tf.nn.l2_loss(W) )
                 ######### Your code ends here #########
 
                 accuracy = tf.reduce_mean(tf.to_float(y*y_est > 0))
@@ -102,8 +99,8 @@ def svm(data, load=False, feature_extractor=identityFeatureExtractor):
                 Compute the y_est (estimate of y), the label.
                 i.e., y_est = ...., label = .....
                 '''
-                y_est = tf.matmul(x,W)-b
-                label = tf.sign(tf.matmul(x,W)-b)
+                y_est = tf.matmul(x,W)-b 
+                label = tf.sign(y_est)
 
                 ######### Your code ends here #########
 
@@ -164,7 +161,7 @@ def svm(data, load=False, feature_extractor=identityFeatureExtractor):
     # CARRY OUT THE TRAINING!!
     tf.estimator.train_and_evaluate(estimator_model, train_spec, eval_spec)
 
-    print("Traing and evaluate completed")
+    print("Training and evaluation completed")
     # save the model
     if data['name'] == 'hog': 
         with tf.Graph().as_default():
@@ -196,9 +193,14 @@ def get_hog_data():
         # we also know that the first 500 examples were -1 and second 500 were +1
         x_eval = hog_descriptor( np.concatenate([pedestrian_data['eval_neg'], pedestrian_data['eval_pos']], axis = 0)).eval()    # should be of size [#datapoints, 1152] 
         x_pred = hog_descriptor( np.concatenate([pedestrian_data['test_neg'], pedestrian_data['test_pos']], axis = 0)).eval()
-        y_train = np.concatenate((-np.ones(pedestrian_data['train_neg']).shape(0), np.ones(pedestrian_data['train_pos']).shape(0)), axis = 0)
-        y_eval = np.concatenate((-np.ones(pedestrian_data['eval_neg']).shape(0), np.ones(pedestrian_data['eval_pos']).shape(0)), axis = 0)
-        y_true = np.concatenate((-np.ones(pedestrian_data['test_neg']).shape(0), np.ones(pedestrian_data['test_pos']).shape(0)), axis = 0)
+
+        y_train = np.concatenate((-np.ones(pedestrian_data['train_neg'].shape[0]), np.ones(pedestrian_data['train_pos'].shape[0]) ), axis = 0)
+        y_train = np.expand_dims(y_train, axis = 1)
+        y_eval = np.concatenate((-np.ones(pedestrian_data['eval_neg'].shape[0]), np.ones(pedestrian_data['eval_pos'].shape[0]) ), axis = 0)
+        y_eval = np.expand_dims(y_eval, axis = 1)
+        y_true = np.concatenate((-np.ones(pedestrian_data['test_neg'].shape[0]), np.ones(pedestrian_data['test_pos'].shape[0]) ), axis = 0)
+        y_true = np.expand_dims(y_true, axis = 1)
+        sess.close()
         ######### Your code ends here #########
     return (x_train, y_train), (x_eval, y_eval), (x_pred, y_true)
 
@@ -209,7 +211,7 @@ if __name__ == '__main__':
     parser.add_argument('--feature',   type=str, default="identity", help="identity or custom")
 
     args = parser.parse_args()
-    args.type = "hog"
+    # args.type = "hog"
     if args.type == "toy":
         x_train, y_train = generate_data(N=5000)
         x_eval, y_eval = generate_data(N=1000)

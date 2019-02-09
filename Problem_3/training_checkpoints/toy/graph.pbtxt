@@ -1923,63 +1923,6 @@ node {
   }
 }
 node {
-  name: "svm/Mul"
-  op: "Mul"
-  input: "ToFloat_1"
-  input: "svm/sub"
-  attr {
-    key: "T"
-    value {
-      type: DT_FLOAT
-    }
-  }
-  attr {
-    key: "_output_shapes"
-    value {
-      list {
-        shape {
-          dim {
-            size: 32
-          }
-          dim {
-            size: 1
-          }
-        }
-      }
-    }
-  }
-}
-node {
-  name: "svm/Size"
-  op: "Const"
-  attr {
-    key: "_output_shapes"
-    value {
-      list {
-        shape {
-        }
-      }
-    }
-  }
-  attr {
-    key: "dtype"
-    value {
-      type: DT_INT32
-    }
-  }
-  attr {
-    key: "value"
-    value {
-      tensor {
-        dtype: DT_INT32
-        tensor_shape {
-        }
-        int_val: 64
-      }
-    }
-  }
-}
-node {
   name: "svm/MatMul_1"
   op: "MatMul"
   input: "ToFloat"
@@ -2046,7 +1989,7 @@ node {
   }
 }
 node {
-  name: "svm/Mul_1"
+  name: "svm/mul"
   op: "Mul"
   input: "ToFloat_1"
   input: "svm/sub_1"
@@ -2106,7 +2049,7 @@ node {
   name: "svm/sub_2"
   op: "Sub"
   input: "svm/sub_2/x"
-  input: "svm/Mul_1"
+  input: "svm/mul"
   attr {
     key: "T"
     value {
@@ -2223,8 +2166,8 @@ node {
   }
 }
 node {
-  name: "svm/Sum"
-  op: "Sum"
+  name: "svm/Mean"
+  op: "Mean"
   input: "svm/Maximum"
   input: "svm/Const"
   attr {
@@ -2276,7 +2219,7 @@ node {
   }
 }
 node {
-  name: "svm/mul_2/x"
+  name: "svm/mul_1/x"
   op: "Const"
   attr {
     key: "_output_shapes"
@@ -2306,9 +2249,9 @@ node {
   }
 }
 node {
-  name: "svm/mul_2"
+  name: "svm/mul_1"
   op: "Mul"
-  input: "svm/mul_2/x"
+  input: "svm/mul_1/x"
   input: "svm/L2Loss"
   attr {
     key: "T"
@@ -2329,8 +2272,8 @@ node {
 node {
   name: "svm/add"
   op: "Add"
-  input: "svm/Sum"
-  input: "svm/mul_2"
+  input: "svm/Mean"
+  input: "svm/mul_1"
   attr {
     key: "T"
     value {
@@ -2348,10 +2291,10 @@ node {
   }
 }
 node {
-  name: "svm/mul_3"
+  name: "svm/mul_2"
   op: "Mul"
   input: "ToFloat_1"
-  input: "svm/Mul"
+  input: "svm/sub"
   attr {
     key: "T"
     value {
@@ -2407,7 +2350,7 @@ node {
 node {
   name: "svm/Greater"
   op: "Greater"
-  input: "svm/mul_3"
+  input: "svm/mul_2"
   input: "svm/Greater/y"
   attr {
     key: "T"
@@ -2506,7 +2449,7 @@ node {
   }
 }
 node {
-  name: "svm/Mean"
+  name: "svm/Mean_1"
   op: "Mean"
   input: "svm/ToFloat"
   input: "svm/Const_1"
@@ -2539,13 +2482,13 @@ node {
   }
 }
 node {
-  name: "svm/mean_1/total/Initializer/zeros"
+  name: "svm/mean_2/total/Initializer/zeros"
   op: "Const"
   attr {
     key: "_class"
     value {
       list {
-        s: "loc:@svm/mean_1/total"
+        s: "loc:@svm/mean_2/total"
       }
     }
   }
@@ -2577,13 +2520,13 @@ node {
   }
 }
 node {
-  name: "svm/mean_1/total"
+  name: "svm/mean_2/total"
   op: "VariableV2"
   attr {
     key: "_class"
     value {
       list {
-        s: "loc:@svm/mean_1/total"
+        s: "loc:@svm/mean_2/total"
       }
     }
   }
@@ -2623,10 +2566,10 @@ node {
   }
 }
 node {
-  name: "svm/mean_1/total/Assign"
+  name: "svm/mean_2/total/Assign"
   op: "Assign"
-  input: "svm/mean_1/total"
-  input: "svm/mean_1/total/Initializer/zeros"
+  input: "svm/mean_2/total"
+  input: "svm/mean_2/total/Initializer/zeros"
   attr {
     key: "T"
     value {
@@ -2637,7 +2580,7 @@ node {
     key: "_class"
     value {
       list {
-        s: "loc:@svm/mean_1/total"
+        s: "loc:@svm/mean_2/total"
       }
     }
   }
@@ -2664,9 +2607,9 @@ node {
   }
 }
 node {
-  name: "svm/mean_1/total/read"
+  name: "svm/mean_2/total/read"
   op: "Identity"
-  input: "svm/mean_1/total"
+  input: "svm/mean_2/total"
   attr {
     key: "T"
     value {
@@ -2677,7 +2620,7 @@ node {
     key: "_class"
     value {
       list {
-        s: "loc:@svm/mean_1/total"
+        s: "loc:@svm/mean_2/total"
       }
     }
   }
@@ -2692,13 +2635,13 @@ node {
   }
 }
 node {
-  name: "svm/mean_1/count/Initializer/zeros"
+  name: "svm/mean_2/count/Initializer/zeros"
   op: "Const"
   attr {
     key: "_class"
     value {
       list {
-        s: "loc:@svm/mean_1/count"
+        s: "loc:@svm/mean_2/count"
       }
     }
   }
@@ -2730,13 +2673,13 @@ node {
   }
 }
 node {
-  name: "svm/mean_1/count"
+  name: "svm/mean_2/count"
   op: "VariableV2"
   attr {
     key: "_class"
     value {
       list {
-        s: "loc:@svm/mean_1/count"
+        s: "loc:@svm/mean_2/count"
       }
     }
   }
@@ -2776,10 +2719,10 @@ node {
   }
 }
 node {
-  name: "svm/mean_1/count/Assign"
+  name: "svm/mean_2/count/Assign"
   op: "Assign"
-  input: "svm/mean_1/count"
-  input: "svm/mean_1/count/Initializer/zeros"
+  input: "svm/mean_2/count"
+  input: "svm/mean_2/count/Initializer/zeros"
   attr {
     key: "T"
     value {
@@ -2790,7 +2733,7 @@ node {
     key: "_class"
     value {
       list {
-        s: "loc:@svm/mean_1/count"
+        s: "loc:@svm/mean_2/count"
       }
     }
   }
@@ -2817,9 +2760,9 @@ node {
   }
 }
 node {
-  name: "svm/mean_1/count/read"
+  name: "svm/mean_2/count/read"
   op: "Identity"
-  input: "svm/mean_1/count"
+  input: "svm/mean_2/count"
   attr {
     key: "T"
     value {
@@ -2830,7 +2773,7 @@ node {
     key: "_class"
     value {
       list {
-        s: "loc:@svm/mean_1/count"
+        s: "loc:@svm/mean_2/count"
       }
     }
   }
@@ -2845,7 +2788,7 @@ node {
   }
 }
 node {
-  name: "svm/mean_1/Size"
+  name: "svm/mean_2/Size"
   op: "Const"
   attr {
     key: "_output_shapes"
@@ -2875,9 +2818,9 @@ node {
   }
 }
 node {
-  name: "svm/mean_1/ToFloat"
+  name: "svm/mean_2/ToFloat"
   op: "Cast"
-  input: "svm/mean_1/Size"
+  input: "svm/mean_2/Size"
   attr {
     key: "DstT"
     value {
@@ -2907,7 +2850,7 @@ node {
   }
 }
 node {
-  name: "svm/mean_1/Const"
+  name: "svm/mean_2/Const"
   op: "Const"
   attr {
     key: "_output_shapes"
@@ -2940,10 +2883,10 @@ node {
   }
 }
 node {
-  name: "svm/mean_1/Sum"
+  name: "svm/mean_2/Sum"
   op: "Sum"
-  input: "svm/Mean"
-  input: "svm/mean_1/Const"
+  input: "svm/Mean_1"
+  input: "svm/mean_2/Const"
   attr {
     key: "T"
     value {
@@ -2973,10 +2916,10 @@ node {
   }
 }
 node {
-  name: "svm/mean_1/AssignAdd"
+  name: "svm/mean_2/AssignAdd"
   op: "AssignAdd"
-  input: "svm/mean_1/total"
-  input: "svm/mean_1/Sum"
+  input: "svm/mean_2/total"
+  input: "svm/mean_2/Sum"
   attr {
     key: "T"
     value {
@@ -2987,7 +2930,7 @@ node {
     key: "_class"
     value {
       list {
-        s: "loc:@svm/mean_1/total"
+        s: "loc:@svm/mean_2/total"
       }
     }
   }
@@ -3008,11 +2951,11 @@ node {
   }
 }
 node {
-  name: "svm/mean_1/AssignAdd_1"
+  name: "svm/mean_2/AssignAdd_1"
   op: "AssignAdd"
-  input: "svm/mean_1/count"
-  input: "svm/mean_1/ToFloat"
-  input: "^svm/Mean"
+  input: "svm/mean_2/count"
+  input: "svm/mean_2/ToFloat"
+  input: "^svm/Mean_1"
   attr {
     key: "T"
     value {
@@ -3023,7 +2966,7 @@ node {
     key: "_class"
     value {
       list {
-        s: "loc:@svm/mean_1/count"
+        s: "loc:@svm/mean_2/count"
       }
     }
   }
@@ -3044,10 +2987,10 @@ node {
   }
 }
 node {
-  name: "svm/mean_1/truediv"
+  name: "svm/mean_2/truediv"
   op: "RealDiv"
-  input: "svm/mean_1/total/read"
-  input: "svm/mean_1/count/read"
+  input: "svm/mean_2/total/read"
+  input: "svm/mean_2/count/read"
   attr {
     key: "T"
     value {
@@ -3065,7 +3008,7 @@ node {
   }
 }
 node {
-  name: "svm/mean_1/zeros_like"
+  name: "svm/mean_2/zeros_like"
   op: "Const"
   attr {
     key: "_output_shapes"
@@ -3095,10 +3038,10 @@ node {
   }
 }
 node {
-  name: "svm/mean_1/Greater"
+  name: "svm/mean_2/Greater"
   op: "Greater"
-  input: "svm/mean_1/count/read"
-  input: "svm/mean_1/zeros_like"
+  input: "svm/mean_2/count/read"
+  input: "svm/mean_2/zeros_like"
   attr {
     key: "T"
     value {
@@ -3116,11 +3059,11 @@ node {
   }
 }
 node {
-  name: "svm/mean_1/value"
+  name: "svm/mean_2/value"
   op: "Select"
-  input: "svm/mean_1/Greater"
-  input: "svm/mean_1/truediv"
-  input: "svm/mean_1/zeros_like"
+  input: "svm/mean_2/Greater"
+  input: "svm/mean_2/truediv"
+  input: "svm/mean_2/zeros_like"
   attr {
     key: "T"
     value {
@@ -3138,10 +3081,10 @@ node {
   }
 }
 node {
-  name: "svm/mean_1/truediv_1"
+  name: "svm/mean_2/truediv_1"
   op: "RealDiv"
-  input: "svm/mean_1/AssignAdd"
-  input: "svm/mean_1/AssignAdd_1"
+  input: "svm/mean_2/AssignAdd"
+  input: "svm/mean_2/AssignAdd_1"
   attr {
     key: "T"
     value {
@@ -3159,7 +3102,7 @@ node {
   }
 }
 node {
-  name: "svm/mean_1/zeros_like_1"
+  name: "svm/mean_2/zeros_like_1"
   op: "Const"
   attr {
     key: "_output_shapes"
@@ -3189,10 +3132,10 @@ node {
   }
 }
 node {
-  name: "svm/mean_1/Greater_1"
+  name: "svm/mean_2/Greater_1"
   op: "Greater"
-  input: "svm/mean_1/AssignAdd_1"
-  input: "svm/mean_1/zeros_like_1"
+  input: "svm/mean_2/AssignAdd_1"
+  input: "svm/mean_2/zeros_like_1"
   attr {
     key: "T"
     value {
@@ -3210,11 +3153,11 @@ node {
   }
 }
 node {
-  name: "svm/mean_1/update_op"
+  name: "svm/mean_2/update_op"
   op: "Select"
-  input: "svm/mean_1/Greater_1"
-  input: "svm/mean_1/truediv_1"
-  input: "svm/mean_1/zeros_like_1"
+  input: "svm/mean_2/Greater_1"
+  input: "svm/mean_2/truediv_1"
+  input: "svm/mean_2/zeros_like_1"
   attr {
     key: "T"
     value {
@@ -3385,7 +3328,7 @@ node {
   }
 }
 node {
-  name: "svm/gradients/svm/Sum_grad/Reshape/shape"
+  name: "svm/gradients/svm/Mean_grad/Reshape/shape"
   op: "Const"
   attr {
     key: "_output_shapes"
@@ -3421,10 +3364,10 @@ node {
   }
 }
 node {
-  name: "svm/gradients/svm/Sum_grad/Reshape"
+  name: "svm/gradients/svm/Mean_grad/Reshape"
   op: "Reshape"
   input: "svm/gradients/svm/add_grad/tuple/control_dependency"
-  input: "svm/gradients/svm/Sum_grad/Reshape/shape"
+  input: "svm/gradients/svm/Mean_grad/Reshape/shape"
   attr {
     key: "T"
     value {
@@ -3454,7 +3397,7 @@ node {
   }
 }
 node {
-  name: "svm/gradients/svm/Sum_grad/Const"
+  name: "svm/gradients/svm/Mean_grad/Const"
   op: "Const"
   attr {
     key: "_output_shapes"
@@ -3490,10 +3433,10 @@ node {
   }
 }
 node {
-  name: "svm/gradients/svm/Sum_grad/Tile"
+  name: "svm/gradients/svm/Mean_grad/Tile"
   op: "Tile"
-  input: "svm/gradients/svm/Sum_grad/Reshape"
-  input: "svm/gradients/svm/Sum_grad/Const"
+  input: "svm/gradients/svm/Mean_grad/Reshape"
+  input: "svm/gradients/svm/Mean_grad/Const"
   attr {
     key: "T"
     value {
@@ -3523,7 +3466,64 @@ node {
   }
 }
 node {
-  name: "svm/gradients/svm/mul_2_grad/Mul"
+  name: "svm/gradients/svm/Mean_grad/Const_1"
+  op: "Const"
+  attr {
+    key: "_output_shapes"
+    value {
+      list {
+        shape {
+        }
+      }
+    }
+  }
+  attr {
+    key: "dtype"
+    value {
+      type: DT_FLOAT
+    }
+  }
+  attr {
+    key: "value"
+    value {
+      tensor {
+        dtype: DT_FLOAT
+        tensor_shape {
+        }
+        float_val: 32.0
+      }
+    }
+  }
+}
+node {
+  name: "svm/gradients/svm/Mean_grad/truediv"
+  op: "RealDiv"
+  input: "svm/gradients/svm/Mean_grad/Tile"
+  input: "svm/gradients/svm/Mean_grad/Const_1"
+  attr {
+    key: "T"
+    value {
+      type: DT_FLOAT
+    }
+  }
+  attr {
+    key: "_output_shapes"
+    value {
+      list {
+        shape {
+          dim {
+            size: 32
+          }
+          dim {
+            size: 1
+          }
+        }
+      }
+    }
+  }
+}
+node {
+  name: "svm/gradients/svm/mul_1_grad/Mul"
   op: "Mul"
   input: "svm/gradients/svm/add_grad/tuple/control_dependency_1"
   input: "svm/L2Loss"
@@ -3544,10 +3544,10 @@ node {
   }
 }
 node {
-  name: "svm/gradients/svm/mul_2_grad/Mul_1"
+  name: "svm/gradients/svm/mul_1_grad/Mul_1"
   op: "Mul"
   input: "svm/gradients/svm/add_grad/tuple/control_dependency_1"
-  input: "svm/mul_2/x"
+  input: "svm/mul_1/x"
   attr {
     key: "T"
     value {
@@ -3565,16 +3565,16 @@ node {
   }
 }
 node {
-  name: "svm/gradients/svm/mul_2_grad/tuple/group_deps"
+  name: "svm/gradients/svm/mul_1_grad/tuple/group_deps"
   op: "NoOp"
-  input: "^svm/gradients/svm/mul_2_grad/Mul"
-  input: "^svm/gradients/svm/mul_2_grad/Mul_1"
+  input: "^svm/gradients/svm/mul_1_grad/Mul"
+  input: "^svm/gradients/svm/mul_1_grad/Mul_1"
 }
 node {
-  name: "svm/gradients/svm/mul_2_grad/tuple/control_dependency"
+  name: "svm/gradients/svm/mul_1_grad/tuple/control_dependency"
   op: "Identity"
-  input: "svm/gradients/svm/mul_2_grad/Mul"
-  input: "^svm/gradients/svm/mul_2_grad/tuple/group_deps"
+  input: "svm/gradients/svm/mul_1_grad/Mul"
+  input: "^svm/gradients/svm/mul_1_grad/tuple/group_deps"
   attr {
     key: "T"
     value {
@@ -3585,7 +3585,7 @@ node {
     key: "_class"
     value {
       list {
-        s: "loc:@svm/gradients/svm/mul_2_grad/Mul"
+        s: "loc:@svm/gradients/svm/mul_1_grad/Mul"
       }
     }
   }
@@ -3600,10 +3600,10 @@ node {
   }
 }
 node {
-  name: "svm/gradients/svm/mul_2_grad/tuple/control_dependency_1"
+  name: "svm/gradients/svm/mul_1_grad/tuple/control_dependency_1"
   op: "Identity"
-  input: "svm/gradients/svm/mul_2_grad/Mul_1"
-  input: "^svm/gradients/svm/mul_2_grad/tuple/group_deps"
+  input: "svm/gradients/svm/mul_1_grad/Mul_1"
+  input: "^svm/gradients/svm/mul_1_grad/tuple/group_deps"
   attr {
     key: "T"
     value {
@@ -3614,7 +3614,7 @@ node {
     key: "_class"
     value {
       list {
-        s: "loc:@svm/gradients/svm/mul_2_grad/Mul_1"
+        s: "loc:@svm/gradients/svm/mul_1_grad/Mul_1"
       }
     }
   }
@@ -3856,7 +3856,7 @@ node {
   name: "svm/gradients/svm/Maximum_grad/Select"
   op: "Select"
   input: "svm/gradients/svm/Maximum_grad/GreaterEqual"
-  input: "svm/gradients/svm/Sum_grad/Tile"
+  input: "svm/gradients/svm/Mean_grad/truediv"
   input: "svm/gradients/svm/Maximum_grad/zeros"
   attr {
     key: "T"
@@ -3885,7 +3885,7 @@ node {
   op: "Select"
   input: "svm/gradients/svm/Maximum_grad/GreaterEqual"
   input: "svm/gradients/svm/Maximum_grad/zeros"
-  input: "svm/gradients/svm/Sum_grad/Tile"
+  input: "svm/gradients/svm/Mean_grad/truediv"
   attr {
     key: "T"
     value {
@@ -4111,7 +4111,7 @@ node {
   name: "svm/gradients/svm/L2Loss_grad/mul"
   op: "Mul"
   input: "svm/weights/read"
-  input: "svm/gradients/svm/mul_2_grad/tuple/control_dependency_1"
+  input: "svm/gradients/svm/mul_1_grad/tuple/control_dependency_1"
   attr {
     key: "T"
     value {
@@ -4455,7 +4455,7 @@ node {
   }
 }
 node {
-  name: "svm/gradients/svm/Mul_1_grad/Mul"
+  name: "svm/gradients/svm/mul_grad/Mul"
   op: "Mul"
   input: "svm/gradients/svm/sub_2_grad/tuple/control_dependency_1"
   input: "svm/sub_1"
@@ -4482,7 +4482,7 @@ node {
   }
 }
 node {
-  name: "svm/gradients/svm/Mul_1_grad/Mul_1"
+  name: "svm/gradients/svm/mul_grad/Mul_1"
   op: "Mul"
   input: "svm/gradients/svm/sub_2_grad/tuple/control_dependency_1"
   input: "ToFloat_1"
@@ -4509,16 +4509,16 @@ node {
   }
 }
 node {
-  name: "svm/gradients/svm/Mul_1_grad/tuple/group_deps"
+  name: "svm/gradients/svm/mul_grad/tuple/group_deps"
   op: "NoOp"
-  input: "^svm/gradients/svm/Mul_1_grad/Mul"
-  input: "^svm/gradients/svm/Mul_1_grad/Mul_1"
+  input: "^svm/gradients/svm/mul_grad/Mul"
+  input: "^svm/gradients/svm/mul_grad/Mul_1"
 }
 node {
-  name: "svm/gradients/svm/Mul_1_grad/tuple/control_dependency"
+  name: "svm/gradients/svm/mul_grad/tuple/control_dependency"
   op: "Identity"
-  input: "svm/gradients/svm/Mul_1_grad/Mul"
-  input: "^svm/gradients/svm/Mul_1_grad/tuple/group_deps"
+  input: "svm/gradients/svm/mul_grad/Mul"
+  input: "^svm/gradients/svm/mul_grad/tuple/group_deps"
   attr {
     key: "T"
     value {
@@ -4529,7 +4529,7 @@ node {
     key: "_class"
     value {
       list {
-        s: "loc:@svm/gradients/svm/Mul_1_grad/Mul"
+        s: "loc:@svm/gradients/svm/mul_grad/Mul"
       }
     }
   }
@@ -4550,10 +4550,10 @@ node {
   }
 }
 node {
-  name: "svm/gradients/svm/Mul_1_grad/tuple/control_dependency_1"
+  name: "svm/gradients/svm/mul_grad/tuple/control_dependency_1"
   op: "Identity"
-  input: "svm/gradients/svm/Mul_1_grad/Mul_1"
-  input: "^svm/gradients/svm/Mul_1_grad/tuple/group_deps"
+  input: "svm/gradients/svm/mul_grad/Mul_1"
+  input: "^svm/gradients/svm/mul_grad/tuple/group_deps"
   attr {
     key: "T"
     value {
@@ -4564,7 +4564,7 @@ node {
     key: "_class"
     value {
       list {
-        s: "loc:@svm/gradients/svm/Mul_1_grad/Mul_1"
+        s: "loc:@svm/gradients/svm/mul_grad/Mul_1"
       }
     }
   }
@@ -4688,7 +4688,7 @@ node {
 node {
   name: "svm/gradients/svm/sub_1_grad/Sum"
   op: "Sum"
-  input: "svm/gradients/svm/Mul_1_grad/tuple/control_dependency_1"
+  input: "svm/gradients/svm/mul_grad/tuple/control_dependency_1"
   input: "svm/gradients/svm/sub_1_grad/BroadcastGradientArgs"
   attr {
     key: "T"
@@ -4757,7 +4757,7 @@ node {
 node {
   name: "svm/gradients/svm/sub_1_grad/Sum_1"
   op: "Sum"
-  input: "svm/gradients/svm/Mul_1_grad/tuple/control_dependency_1"
+  input: "svm/gradients/svm/mul_grad/tuple/control_dependency_1"
   input: "svm/gradients/svm/sub_1_grad/BroadcastGradientArgs:1"
   attr {
     key: "T"
@@ -5451,12 +5451,12 @@ node {
 node {
   name: "report_uninitialized_variables/IsVariableInitialized_3"
   op: "IsVariableInitialized"
-  input: "svm/mean_1/total"
+  input: "svm/mean_2/total"
   attr {
     key: "_class"
     value {
       list {
-        s: "loc:@svm/mean_1/total"
+        s: "loc:@svm/mean_2/total"
       }
     }
   }
@@ -5479,12 +5479,12 @@ node {
 node {
   name: "report_uninitialized_variables/IsVariableInitialized_4"
   op: "IsVariableInitialized"
-  input: "svm/mean_1/count"
+  input: "svm/mean_2/count"
   attr {
     key: "_class"
     value {
       list {
-        s: "loc:@svm/mean_1/count"
+        s: "loc:@svm/mean_2/count"
       }
     }
   }
@@ -5597,8 +5597,8 @@ node {
         string_val: "global_step"
         string_val: "svm/weights"
         string_val: "svm/bias"
-        string_val: "svm/mean_1/total"
-        string_val: "svm/mean_1/count"
+        string_val: "svm/mean_2/total"
+        string_val: "svm/mean_2/count"
       }
     }
   }
@@ -7956,8 +7956,8 @@ node {
 node {
   name: "init_2"
   op: "NoOp"
-  input: "^svm/mean_1/count/Assign"
-  input: "^svm/mean_1/total/Assign"
+  input: "^svm/mean_2/count/Assign"
+  input: "^svm/mean_2/total/Assign"
 }
 node {
   name: "init_all_tables"
@@ -8050,7 +8050,7 @@ node {
         dtype: DT_STRING
         tensor_shape {
         }
-        string_val: "_temp_65c64a306660490594ae3fd01ccd3012/part"
+        string_val: "_temp_6d4dd5244d594a5d813c7fa7576584cb/part"
       }
     }
   }
