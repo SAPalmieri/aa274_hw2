@@ -47,7 +47,7 @@ def svm(data, load=False, feature_extractor=identityFeatureExtractor):
         eval_batch_size = 32,
         ######### Your code starts here #########
         # Select your learning rate and lambda value here 
-        lr = 1,
+        lr = 0.03,
         lam = 1,
         ######### Your code ends here #########
         )
@@ -74,11 +74,10 @@ def svm(data, load=False, feature_extractor=identityFeatureExtractor):
                 '''
                 
                 # y_est = tf.cast(tf.multiply(y,tf.matmul(x,W)-b), tf.float32)
-                y_est = tf.cast(tf.matmul(x,W)-b, tf.float32)
+                # y_est = tf.cast(tf.matmul(x,W)-b, tf.float32)
                 y_est = tf.matmul(x,W)-b
-                loss = tf.math.maximum(0, 1 - tf.cast(tf.multiply(y,tf.matmul(x,W)-b), tf.int32))
-                loss = tf.cast(tf.Variable(loss, tf.float32), tf.int32)
-
+                n = tf.size(x)
+                loss = tf.reduce_sum( tf.maximum(0.0, 1.0 - tf.multiply(y,tf.matmul(x,W)-b) ) ) + params.lam* tf.nn.l2_loss(W)
                 ######### Your code ends here #########
 
                 accuracy = tf.reduce_mean(tf.to_float(y*y_est > 0))
@@ -103,10 +102,8 @@ def svm(data, load=False, feature_extractor=identityFeatureExtractor):
                 Compute the y_est (estimate of y), the label.
                 i.e., y_est = ...., label = .....
                 '''
-                y_est = tf.cast(tf.matmul(x,W)-b, tf.float32)
-                n = tf.size(y, tf.int32)
-                label = tf.cast(1.0/n * tf.reduce_sum( tf.maximum(0, 1 - tf.multiply(y, tf.matmul(x,W)-b))) + params.lam*tf.multiply(tf.linalg.norm(W),tf.linalg.norm(W)), tf.float32)
-                label = tf.cast(1.0/n * tf.reduce_sum( tf.maximum(0, 1 - tf.matmul(x,W)-b) ) + params.lam*tf.multiply(tf.linalg.norm(W),tf.linalg.norm(W)), tf.float32)
+                y_est = tf.matmul(x,W)-b
+                label = tf.sign(tf.matmul(x,W)-b)
 
                 ######### Your code ends here #########
 
@@ -195,12 +192,14 @@ def get_hog_data():
         pedestrian_data = np.load("pedestrian_dataset.npz")
         ######### Your code starts here #########
         # These should be all be numpy arrays
-        # x_train =     # should be of size [#datapoints, 1152] 
-        # x_eval = 
-        # x_pred = 
-        # y_train =     # should be of size [#datapoints, 1]
-        # y_eval = 
-        # y_true = 
+        x_train = hog_descriptor( np.concatenate([pedestrian_data['train_neg'], pedestrian_data['train_pos']], axis = 0)).eval()    # should be of size [#datapoints, 1152] 
+        # we also know that the first 500 examples were -1 and second 500 were +1
+        x_eval = hog_descriptor( np.concatenate([pedestrian_data['eval_neg'], pedestrian_data['eval_pos']], axis = 0)).eval()    # should be of size [#datapoints, 1152] 
+        x_pred = hog_descriptor( np.concatenate([pedestrian_data['true_neg'], pedestrian_data['true_pos']], axis = 0)).eval()
+        y_train = hog_descriptor( np.concatenate([pedestrian_data['train_neg'], pedestrian_data['train_pos']], axis = 0)).eval()    # should be of size [#datapoints, 1152] 
+        # y_eval = hog_descriptor( np.concatenate([pedestrian_data['eval_neg'], pedestrian_data['eval_pos']], axis = 0)).eval()
+        # y_true =  hog_descriptor( np.concatenate([pedestrian_data['eval_neg'], pedestrian_data['eval_pos']], axis = 0)).eval()
+        # y_true = np.concatenate(np.ones(np.shape(pedestrian_data['true_neg'])), np.zeros(np.shape(pedestrian_data['true_pos'])), axis = 0)
         ######### Your code ends here #########
     return (x_train, y_train), (x_eval, y_eval), (x_pred, y_true)
 
@@ -211,7 +210,7 @@ if __name__ == '__main__':
     parser.add_argument('--feature',   type=str, default="identity", help="identity or custom")
 
     args = parser.parse_args()
-    args.type = "toy"
+    args.type = "hog"
     if args.type == "toy":
         x_train, y_train = generate_data(N=5000)
         x_eval, y_eval = generate_data(N=1000)
