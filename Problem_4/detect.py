@@ -29,7 +29,27 @@ def compute_brute_force_classification(image_path, nH=8, nW=8):
     
     with tf.Session() as sess:
         window = raw_image    # the "window" here is the whole image
-        window_prediction = classify_image(window, sess)
+        window_prediction = []
+        pad_image0 = np.pad(raw_image[:,:,0], pad_width=5, mode='constant', constant_values=0)
+        pad_image1 = np.pad(raw_image[:,:,1], pad_width=5, mode='constant', constant_values=0)
+        pad_image2 = np.pad(raw_image[:,:,2], pad_width=5, mode='constant', constant_values=0)
+        pad_image = np.stack((pad_image0, pad_image1,pad_image2), axis = 2)
+        m,n,dim = pad_image.shape
+        print('m: ', m, 'n: ', n, 'dim: ', dim)
+        window_prediction = np.zeros((m-nH+1,n-nW+1,3))
+        for i in range(m):
+            for j in range(n):
+                if i+nH > m or j+nW > n: #if it will be past the column or rows
+                    print('do nothing, past an edge')
+                elif i+nH == m or j+nW == n: #if it is at the edge
+                    print('do nothing at an edge')
+                else:
+                    window = pad_image[i:i+nW,j:j+nH,:]
+                    val = classify_image(window,sess)
+                    window_prediction[i,j,:] = val
+        # window_prediction = classify_image(window, sess)
+
+    sess.close()
 
     # setting each window prediction to be the prediction for the whole image (just for something to plot)
     # do not turn this code in and claim that "your window padding is infinite"
@@ -72,8 +92,12 @@ def compute_and_plot_saliency(image):
         top_class = np.argmax(logits)
         w_ijc = gradient_of_class_score_with_respect_to_input_image(image, top_class, sess)    # defined in utils.py
     ######### Your code starts here #########
-    
-    M = np.zeros(raw_gradients.shape[0:2])  # something of the right shape to plot
+    m,n,dim = w_ijc.shape
+    M = np.zeros((m,n))
+    for i in range(m):
+        for j in range(n):
+            M[i,j] = np.max(np.abs(w_ijc[i,j,:]))
+    # M = np.zeros(raw_gradients.shape[0:2])  # something of the right shape to plot
 
     ######### Your code ends here #########
 
@@ -113,6 +137,12 @@ if __name__ == '__main__':
     parser.add_argument('--image', type=str)
     parser.add_argument('--scheme', type=str)
     FLAGS, _ = parser.parse_known_args()
+
+    # FLAGS.scheme = 'brute'
+    # FLAGS.image = 'datasets/train/cat/000019.jpg'
+
+    FLAGS.scheme = 'saliency'
+    FLAGS.image = 'datasets/test/neg/005363.jpg'
 
     load_graph(GRAPH)
     if FLAGS.scheme == 'brute':
